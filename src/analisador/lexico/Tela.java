@@ -4,11 +4,21 @@
  */
 package analisador.lexico;
 
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import com.formdev.flatlaf.ui.FlatLineBorder;
 import jnafilechooser.api.JnaFileChooser;
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Stack;
+import java.util.StringTokenizer;
+import java.util.LinkedList;
+import java.util.Queue;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -70,6 +80,7 @@ public class Tela extends javax.swing.JFrame {
         jPanel5 = new javax.swing.JPanel();
         sPane = new javax.swing.JScrollPane();
         textArea = new javax.swing.JTextArea();
+        claro = new javax.swing.JToggleButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Analizador Lexico");
@@ -132,7 +143,6 @@ public class Tela extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
         jLabel2.setText("OutPut :");
 
-        tabela.setEnabled(false);
         jScrollPane1.setViewportView(tabela);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -198,6 +208,13 @@ public class Tela extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        claro.setText("Modo Claro");
+        claro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                claroActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -225,7 +242,9 @@ public class Tela extends javax.swing.JFrame {
                         .addComponent(jLabel1)
                         .addGap(118, 118, 118)
                         .addComponent(jButton1)
-                        .addGap(220, 220, 220))
+                        .addGap(85, 85, 85)
+                        .addComponent(claro)
+                        .addGap(24, 24, 24))
                     .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -248,7 +267,8 @@ public class Tela extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(claro))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(10, 10, 10)
@@ -292,18 +312,103 @@ public class Tela extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         
-        int caretPosition = textArea.getCaretPosition(); // Obter a posição do cursor
-            try {
-                int linha = textArea.getLineOfOffset(caretPosition); // Obter o número da linha
-                int inicioLinha = textArea.getLineStartOffset(linha); // Obter o início da linha
-                int fimLinha = textArea.getLineEndOffset(linha); // Obter o fim da linha
-                String linhaSelecionada = textArea.getText().substring(inicioLinha, fimLinha); // Obter o texto da linha
-                 System.out.println( "linha "+linha+" "+ linhaSelecionada);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+//        int caretPosition = textArea.getCaretPosition(); // Obter a posição do cursor
+//            try {
+//                int linha = textArea.getLineOfOffset(caretPosition); // Obter o número da linha
+//                int inicioLinha = textArea.getLineStartOffset(linha); // Obter o início da linha
+//                int fimLinha = textArea.getLineEndOffset(linha); // Obter o fim da linha
+//                String linhaSelecionada = textArea.getText().substring(inicioLinha, fimLinha); // Obter o texto da linha
+//                 System.out.println( "linha "+linha+" "+ linhaSelecionada);
+//            } catch (Exception ex) {
+//                ex.printStackTrace();
+//            }
+
+StringTokenizer tokenizer = new StringTokenizer(textArea.getText());
+Queue<String> tokens = new LinkedList<>();
+
+while (tokenizer.hasMoreElements()) {
+    tokens.offer(tokenizer.nextToken());
+}
+  while (model.getRowCount() > 0) {
+			model.removeRow(0);
+		}
+  
+while (!tokens.isEmpty()) {
+    String currentToken = tokens.peek(); 
+
+    Token t = new Token();
+    ArrayList<String> aritmeticos = new ArrayList<>(Arrays.asList(t.aritmeticos));
+    ArrayList<String> primitivos = new ArrayList<>(Arrays.asList(t.tiposPrimitivos));
+    ArrayList<String> comparacao = new ArrayList<>(Arrays.asList(t.comparacao));
+    ArrayList<String> delimitadores = new ArrayList<>(Arrays.asList(t.delimitadores));
+    ArrayList<String> palavras_Reservadas = new ArrayList<>(Arrays.asList(t.palavras_Reservadas));
+
+    if (aritmeticos.contains(currentToken)) {
+        model.addRow(new Object[]{
+                tokens.poll(), "Operador Aritmético"
+        });
+    } else if (primitivos.contains(currentToken)) {
+        model.addRow(new Object[]{
+                tokens.poll(), "Tipos Primitivos"
+        });
+    } else if (comparacao.contains(currentToken)) {
+        model.addRow(new Object[]{
+                tokens.poll(), "Operadores de Comparação"
+        });
+    } else if (delimitadores.contains(currentToken)) {
+        model.addRow(new Object[]{
+                tokens.poll(), "Delimitador"
+        });
+    } 
+     else if (palavras_Reservadas.contains(currentToken)) {
+        model.addRow(new Object[]{
+                tokens.poll(), "palavras_Reservadas"
+        });
+    } 
+    
+    else{
+      
+        model.addRow(new Object[]{
+                tokens.poll(), "Variavel/Identificador"
+        });
+        
+        
+    }
+}
+
        
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void claroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_claroActionPerformed
+     if(claro.isSelected()) {
+       
+          EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    FlatAnimatedLafChange.showSnapshot();
+                    FlatMacLightLaf.setup();
+                    FlatLaf.updateUI();
+                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
+
+                        }
+            });
+           claro.setText("Modo Escuro");
+     } 
+     else{
+       
+         claro.setText("Modo Claro");
+          EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    FlatAnimatedLafChange.showSnapshot();
+                    FlatMacDarkLaf.setup();
+                    FlatLaf.updateUI();
+                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
+
+                        }
+            });
+     }
+    }//GEN-LAST:event_claroActionPerformed
 
     /**
      * @param args the command line arguments
@@ -323,6 +428,7 @@ public class Tela extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel b1;
     private javax.swing.JLabel b2;
+    private javax.swing.JToggleButton claro;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
