@@ -18,7 +18,10 @@ import java.util.Arrays;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -323,18 +326,33 @@ public class Tela extends javax.swing.JFrame {
 //                ex.printStackTrace();
 //            }
 
-StringTokenizer tokenizer = new StringTokenizer(textArea.getText());
-Queue<String> tokens = new LinkedList<>();
+//StringTokenizer tokenizer = new StringTokenizer(textArea.getText());
 
-while (tokenizer.hasMoreElements()) {
-    tokens.offer(tokenizer.nextToken());
-}
-  while (model.getRowCount() > 0) {
+   Pattern pattern = Pattern.compile("\\b(if|then|else|begin|end|program|var|integer|String|return)\\b|:=|:|[;()\\s]|\\b[a-zA-Z]+\\b|\\d+|>");
+
+while (model.getRowCount() > 0) {
 			model.removeRow(0);
 		}
+ Matcher matcher = pattern.matcher(textArea.getText());
+
+ArrayList<String> tokens = new ArrayList<>();
+
+while (matcher.find()) {
+    tokens.add(matcher.group());
+}
+
+       
+  for (int i = 0; i <tokens.size(); i++) {
+            String elemento = tokens.get(i); 
+            if (elemento.trim().isEmpty()) { // Verifica se a string não consiste apenas de espaços em branco
+              
+                tokens.remove(i); // Adiciona o elemento de volta à fila
+            }
+        }
   
+ System.out.println(tokens.toString());
 while (!tokens.isEmpty()) {
-    String currentToken = tokens.peek(); 
+    String currentToken = tokens.getFirst(); 
 
     Token t = new Token();
     ArrayList<String> aritmeticos = new ArrayList<>(Arrays.asList(t.aritmeticos));
@@ -345,31 +363,31 @@ while (!tokens.isEmpty()) {
 
     if (aritmeticos.contains(currentToken)) {
         model.addRow(new Object[]{
-                tokens.poll(), "Operador Aritmético"
+               pull(tokens), "Operador Aritmético"
         });
     } else if (primitivos.contains(currentToken)) {
         model.addRow(new Object[]{
-                tokens.poll(), "Tipos Primitivos"
+              pull(tokens), "Tipos Primitivos"
         });
     } else if (comparacao.contains(currentToken)) {
         model.addRow(new Object[]{
-                tokens.poll(), "Operadores de Comparação"
+               pull(tokens), "Operadores de Comparação"
         });
     } else if (delimitadores.contains(currentToken)) {
         model.addRow(new Object[]{
-                tokens.poll(), "Delimitador"
+               pull(tokens), "Delimitador"
         });
     } 
      else if (palavras_Reservadas.contains(currentToken)) {
         model.addRow(new Object[]{
-                tokens.poll(), "palavras_Reservadas"
+               pull(tokens), "palavras_Reservadas"
         });
     } 
     
     else{
       
         model.addRow(new Object[]{
-                tokens.poll(), "Variavel/Identificador"
+              pull(tokens), "Variavel/Identificador"
         });
         
         
@@ -379,6 +397,12 @@ while (!tokens.isEmpty()) {
        
     }//GEN-LAST:event_jButton1ActionPerformed
 
+     public static String pull(ArrayList<String> a ){
+    String ret = a.getFirst();
+      a.removeFirst();
+      return ret;
+    }
+    
     private void claroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_claroActionPerformed
      if(claro.isSelected()) {
        
