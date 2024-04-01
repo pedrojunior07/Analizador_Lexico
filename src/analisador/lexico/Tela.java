@@ -12,17 +12,22 @@ import com.formdev.flatlaf.ui.FlatLineBorder;
 import jnafilechooser.api.JnaFileChooser;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
 
 /**
  *
@@ -44,6 +49,7 @@ public class Tela extends javax.swing.JFrame {
         
         model.addColumn("Token");
         model.addColumn("classificacao");
+        model.addColumn("linha");
         
         
            TextLineNumber tln = new TextLineNumber(textArea);
@@ -87,6 +93,7 @@ public class Tela extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Analizador Lexico");
+        setResizable(false);
 
         jLabel1.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
         jLabel1.setText("Introduza seu codigo Pascal aqui");
@@ -146,6 +153,7 @@ public class Tela extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Roboto Medium", 0, 18)); // NOI18N
         jLabel2.setText("OutPut :");
 
+        tabela.setFont(new java.awt.Font("Roboto Light", 0, 12)); // NOI18N
         jScrollPane1.setViewportView(tabela);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -191,6 +199,7 @@ public class Tela extends javax.swing.JFrame {
         tx.setFont(new java.awt.Font("Roboto Medium", 0, 12)); // NOI18N
 
         textArea.setColumns(20);
+        textArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
         textArea.setRows(5);
         sPane.setViewportView(textArea);
 
@@ -211,6 +220,7 @@ public class Tela extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        claro.setFont(new java.awt.Font("Roboto Medium", 0, 12)); // NOI18N
         claro.setText("Modo Claro");
         claro.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -314,7 +324,7 @@ public class Tela extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        
+     
 //        int caretPosition = textArea.getCaretPosition(); // Obter a posição do cursor
 //            try {
 //                int linha = textArea.getLineOfOffset(caretPosition); // Obter o número da linha
@@ -328,81 +338,173 @@ public class Tela extends javax.swing.JFrame {
 
 //StringTokenizer tokenizer = new StringTokenizer(textArea.getText());
 
-   Pattern pattern = Pattern.compile("\\b(if|then|else|begin|end|program|var|integer|String|return)\\b|:=|:|[;()\\s]|\\b[a-zA-Z]+\\b|\\d+|>");
+   
+        int size  = textArea.getLineCount();
+        ArrayList<String> linhas = new ArrayList<String>();
+       for(int i=0 ; i< size ; i++ ){
+          
+           try {
+                int inicioLinha = textArea.getLineStartOffset(i); // Obter o início da linha
+            int fimLinha = textArea.getLineEndOffset(i); // Obter o fim da linha
+           linhas.add(textArea.getText().substring(inicioLinha, fimLinha));
+            
+           } catch (BadLocationException e) {
+               e.getMessage();
+           }
+       }
+       
+        HashMap<Integer, ArrayList<String>> tokens = new HashMap<>();
+        
+            agrupar(tokens, linhas);
+          System.out.println(  tokens.toString());
+            preencherTabela(tokens);
+            
+            
+    }//GEN-LAST:event_jButton1ActionPerformed
 
-while (model.getRowCount() > 0) {
+    
+    
+    
+    
+    
+    
+    //===================================METODOS ESPECIAIS======================
+    void preencherTabela(HashMap<Integer,ArrayList<String>> map){
+          while (model.getRowCount() > 0) {
 			model.removeRow(0);
 		}
- Matcher matcher = pattern.matcher(textArea.getText());
-
-ArrayList<String> tokens = new ArrayList<>();
-
-while (matcher.find()) {
-    tokens.add(matcher.group());
-}
-
-       
-  for (int i = 0; i <tokens.size(); i++) {
-            String elemento = tokens.get(i); 
-            if (elemento.trim().isEmpty()) { // Verifica se a string não consiste apenas de espaços em branco
-              
-                tokens.remove(i); // Adiciona o elemento de volta à fila
-            }
-        }
-  
- System.out.println(tokens.toString());
-while (!tokens.isEmpty()) {
-    String currentToken = tokens.getFirst(); 
-
-    Token t = new Token();
+          
+           Token t = new Token();
     ArrayList<String> aritmeticos = new ArrayList<>(Arrays.asList(t.aritmeticos));
     ArrayList<String> primitivos = new ArrayList<>(Arrays.asList(t.tiposPrimitivos));
     ArrayList<String> comparacao = new ArrayList<>(Arrays.asList(t.comparacao));
     ArrayList<String> delimitadores = new ArrayList<>(Arrays.asList(t.delimitadores));
     ArrayList<String> palavras_Reservadas = new ArrayList<>(Arrays.asList(t.palavras_Reservadas));
-
-    if (aritmeticos.contains(currentToken)) {
+          
+         for (Map.Entry<Integer, ArrayList<String>> entry : map.entrySet()) {
+            Object key = entry.getKey();
+            ArrayList<String> val = entry.getValue();
+            
+             for (String o : val) {
+                 
+                
+    if (aritmeticos.contains(o)) {
         model.addRow(new Object[]{
-               pull(tokens), "Operador Aritmético"
+               o, "Operador Aritmético",key
         });
-    } else if (primitivos.contains(currentToken)) {
+    } else if (primitivos.contains(o)) {
         model.addRow(new Object[]{
-              pull(tokens), "Tipos Primitivos"
+              o, "Tipos Primitivos",key
         });
-    } else if (comparacao.contains(currentToken)) {
+    } else if (comparacao.contains(o)) {
         model.addRow(new Object[]{
-               pull(tokens), "Operadores de Comparação"
+               o, "Operadores de Comparação",key
         });
-    } else if (delimitadores.contains(currentToken)) {
+    } else if (delimitadores.contains(o)) {
         model.addRow(new Object[]{
-               pull(tokens), "Delimitador"
+               o, "Delimitador",key
+               
         });
     } 
-     else if (palavras_Reservadas.contains(currentToken)) {
+     else if (palavras_Reservadas.contains(o)) {
         model.addRow(new Object[]{
-               pull(tokens), "palavras_Reservadas"
+               o, "palavras_Reservadas",key
+        });
+    } 
+     else if (o.charAt(0)=='('&&o.charAt(o.length()-1)==')') {
+        model.addRow(new Object[]{
+               o, "<Condicao>",key
         });
     } 
     
     else{
       
+      
+       
         model.addRow(new Object[]{
-              pull(tokens), "Variavel/Identificador"
+              o, "Variavel/Identificador",key
         });
+      
         
         
     }
 }
-
+                 
+             }
+            
+        
+            
        
-    }//GEN-LAST:event_jButton1ActionPerformed
+          
 
-     public static String pull(ArrayList<String> a ){
-    String ret = a.getFirst();
-      a.removeFirst();
-      return ret;
+   
+          
     }
     
+    void ifs (ArrayList<String> s,String str){
+      String sb1 =  str.substring(0, 2);
+      String iff =  str.substring(2, str.length());
+      
+     s.add(iff);
+     s.add(sb1)
+             ;
+       
+    }
+    void whiles (ArrayList<String> s,String str){
+      String sb1 =  str.substring(0, 5);
+      String iff =  str.substring(5, str.length());
+      
+     s.add(iff);
+     s.add(sb1)
+             ;
+       
+    }
+     
+     void agrupar(HashMap<Integer, ArrayList<String> >tokens, ArrayList<String> linhas){
+        int i =1;
+         for (String linha : linhas) {
+          
+        tokens.put(i, tokenizar(linha,i));
+        i++;
+           
+        }
+    }
+    
+    ArrayList<String>  tokenizar (String s,int i){
+            ArrayList<String> ss = new ArrayList<>();
+           StringTokenizer tk = new  StringTokenizer(s);
+        try {
+            while (tk.hasMoreTokens()) {
+                String current = tk.nextToken();                
+                if (current.substring(0, 2).equalsIgnoreCase("if")) {
+                     
+                    if ((current.charAt(2) == '(')  && (current.charAt(current.length()-1) == ')')) {
+                         ifs(ss, current);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Erro Lexico ns linha " + i, s, JOptionPane.ERROR_MESSAGE);
+                       
+                    }                    
+                } else if (current.substring(0, 5).equalsIgnoreCase("WHILE")) {
+                     if ((current.charAt(5) == '(')  && (current.charAt(current.length()-1) == ')')) {
+                         whiles(ss, current);
+                    }else if(current.isEmpty()){}
+                } else {
+                    ss.add(current);
+                }
+            }
+        } catch (Exception e) {
+             JOptionPane.showMessageDialog(this, "Erro Lexico ns linha " + i, s, JOptionPane.ERROR_MESSAGE);
+//             e.printStackTrace();
+        }
+        
+        return  ss;
+           
+    }
+    
+  
+     
+     //==========================================================================
+     
     private void claroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_claroActionPerformed
      if(claro.isSelected()) {
        
