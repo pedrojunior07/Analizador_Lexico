@@ -1,4 +1,4 @@
-package analisador.lexico;
+package analisador.lexico.view;
 
 import java.awt.*;
 import java.beans.*;
