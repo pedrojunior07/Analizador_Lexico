@@ -1,2 +1,2 @@
 # Analizador_Lexico
-Trabalho semestral da  Disciplina "linguagem de programação e Compiladores"
+Trabalho semestral da disciplina: Linguagens de Programação e Compiladores(LPC)
